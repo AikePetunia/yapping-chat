@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>~*~ yapping chat ~*~</title>
+    <script type="module">
+      import { io } from "https://cdn.socket.io/4.6.1/socket.io.esm.min.js";
+      const socket = io();
+
+      const form = document.querySelector(".layout");
+      const input = document.getElementById("chat-input");
+
+      /*
+                    <td class="chat-body">
+                <div id="messages">
+
+      <div class="line">
+                    <span class="tag">visitor_02:</span> 
+                    obvio, hecho a mano con
+                    html de mierda como dios manda<span class="stamp">
+                      [22:15]</span
+                    >
+                  </div>
+                  */
+
+      // new msg
+      // todo: ver como mantener el numero del usuario
+
+      const messages = document.getElementById("messages");
+      const randomCounter = () => Math.floor(Math.random() * 501);
+      const generateNick = "visitor" + randomCounter();
+      // guardad en db
+      /*
+      let saveNick;
+      socket.emit("visitor number", generateNick);
+
+      socket.on("visitor number", (number) => {
+        saveNick = number;
+      });
+                  */
+      socket.on("chat message", (msg) => {
+        console.log("message received on client");
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        const seconds = now.getSeconds();
+
+        console.log(saveNick);
+        const insertText = ` 
+        <div class="line">
+            <span class="tag">${saveNick}</span> 
+            ${msg}
+            <span class="stamp">
+                [${hours}:${minutes}:${seconds}]</span
+            >
+        </div>
+        `;
+
+        messages.insertAdjacentHTML("beforeEnd", insertText);
+      });
+
+      const messagesField = document.getElementById("messages");
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const message = input.value.trim();
+        console.log("message", input.value);
+        if (message) {
+          socket.emit("chat message", input.value);
+          console.log("input value", input.value);
+          input.value = ""; // limpio input
+        }
+      });
+
+      document
+        .getElementById("chat-input")
+        .addEventListener("keydown", function (e) {
+          if (e.key === "Enter") sendMessage();
+        });
+    </script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background-color: #000000;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><text x='2' y='14' font-family='monospace' font-size='12' fill='%23ff2a2a'>01</text><text x='40' y='30' font-family='monospace' font-size='12' fill='%238a0000'>x</text><text x='80' y='10' font-family='monospace' font-size='12' fill='%23ff2a2a'>.</text><text x='10' y='60' font-family='monospace' font-size='12' fill='%23550000'>1</text><text x='60' y='70' font-family='monospace' font-size='12' fill='%23ff2a2a'>0</text><text x='95' y='55' font-family='monospace' font-size='12' fill='%238a0000'>.</text><text x='20' y='100' font-family='monospace' font-size='12' fill='%23ff2a2a'>:</text><text x='70' y='110' font-family='monospace' font-size='12' fill='%23550000'>x</text></svg>");
+        background-repeat: repeat;
+        animation: bgshift 0.4s steps(2) infinite;
+        font-family: "Courier New", Courier, monospace;
+        color: #ff2a2a;
+      }
+
+      @keyframes bgshift {
+        0% {
+          background-position: 0 0;
+        }
+        100% {
+          background-position: -120px 4px;
+        }
+      }
+
+      table.layout {
+        width: 100%;
+        height: 100%;
+        border-collapse: collapse;
+      }
+      table.layout td.center-cell {
+        text-align: center;
+        vertical-align: middle;
+        padding: 10px;
+      }
+
+      marquee.top-marquee {
+        background: #000000;
+        color: #ff2a2a;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        font-weight: bold;
+        border-top: 2px dashed #ff2a2a;
+        border-bottom: 2px dashed #ff2a2a;
+        padding: 3px 0;
+      }
+
+      h1.title {
+        font-family: "Courier New", monospace;
+        font-size: 32px;
+        font-weight: bold;
+        color: #ff2a2a;
+        text-shadow:
+          2px 2px 0 #000000,
+          -1px -1px 0 #550000;
+        letter-spacing: 3px;
+        margin: 14px 0 2px 0;
+      }
+      .blink {
+        animation: blinker 1s steps(1) infinite;
+      }
+      @keyframes blinker {
+        50% {
+          opacity: 0;
+        }
+      }
+
+      .under-construction {
+        font-size: 11px;
+        color: #ffcc00;
+        background: #1a0000;
+        border: 1px dashed #ff2a2a;
+        display: inline-block;
+        padding: 2px 8px;
+        margin-bottom: 10px;
+        font-weight: bold;
+      }
+
+      table.chatbox {
+        margin: 0 auto;
+        width: 480px;
+        max-width: 94vw;
+        background-color: #0a0000;
+        border: 4px ridge #8a0000;
+        border-collapse: collapse;
+      }
+
+      td.chat-titlebar {
+        background-color: #550000;
+        color: #ffffff;
+        font-weight: bold;
+        font-size: 12px;
+        padding: 4px 8px;
+        border-bottom: 3px double #ff2a2a;
+        text-align: left;
+      }
+      td.chat-titlebar .rightbit {
+        float: right;
+      }
+
+      td.chat-body {
+        padding: 0;
+      }
+
+      #messages {
+        height: 260px;
+        overflow-y: scroll;
+        background-color: #000000;
+        background-image: repeating-linear-gradient(
+          0deg,
+          rgba(255, 42, 42, 0.05) 0px,
+          rgba(255, 42, 42, 0.05) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+        padding: 8px;
+        text-align: left;
+        font-size: 13px;
+        color: #ff5a5a;
+      }
+
+      #messages hr {
+        border: none;
+        border-top: 1px dotted #8a0000;
+        margin: 6px 0;
+      }
+
+      .line {
+        margin: 2px 0;
+      }
+      .line .tag {
+        color: #ffcc00;
+        font-weight: bold;
+      }
+      .line .tag.me {
+        color: #55ff55;
+      }
+      .line .stamp {
+        color: #660000;
+        font-size: 10px;
+      }
+
+      table.chat-input-row {
+        width: 100%;
+        border-collapse: collapse;
+        border-top: 3px double #ff2a2a;
+      }
+      table.chat-input-row td {
+        padding: 6px;
+        background-color: #1a0000;
+      }
+
+      #chat-input {
+        width: 100%;
+        background-color: #000000;
+        color: #ff5a5a;
+        border: 2px inset #8a0000;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        padding: 4px;
+      }
+
+      #send-btn {
+        background-color: #550000;
+        color: #ffffff;
+        border: 2px outset #ff2a2a;
+        font-family: "Courier New", monospace;
+        font-weight: bold;
+        font-size: 12px;
+        padding: 4px 12px;
+        cursor: pointer;
+      }
+      #send-btn:active {
+        border-style: inset;
+      }
+
+      .stat-counter {
+        margin-top: 10px;
+        font-size: 11px;
+        color: #ff2a2a;
+        background: #0a0000;
+        border: 1px solid #550000;
+        display: inline-block;
+        padding: 3px 10px;
+        font-family: "Courier New", monospace;
+      }
+
+      hr.sep {
+        width: 400px;
+        max-width: 90vw;
+        border: none;
+        border-top: 2px dashed #ff2a2a;
+        margin: 12px auto;
+      }
+    </style>
+  </head>
+  <body>
+    <table class="layout">
+      <tr>
+        <td colspan="1" style="padding: 0">
+          <marquee class="top-marquee" scrollamount="5">
+            *** welcome to yapping chat *** come yapp *** argentina ⭐⭐⭐ ***
+            best viewed in any resolution ***
+          </marquee>
+        </td>
+      </tr>
+      <tr>
+        <td class="center-cell">
+          <h1 class="title">yapping chat<span class="blink">_</span></h1>
+
+          <br />
+
+          <table class="chatbox">
+            <tr>
+              <td class="chat-titlebar">
+                #yapping.chat.log
+                <span class="rightbit">[ &#9679; ONLINE ]</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="chat-body">
+                <div id="messages">
+                  <div class="line">
+                    <span class="tag">visitor_02:</span>
+                    bienvenido, escribi algo pelotudo o inteligente, lo que sea
+                    <span class="stamp"> [22:14]</span>
+                  </div>
+                  <hr />
+                  <div class="line">
+                    <span class="tag me">vos:</span> esto tiene una onda re
+                    antigua<span class="stamp"> [22:14]</span>
+                  </div>
+                  <hr />
+                  <div class="line">
+                    <span class="tag">visitor_02:</span> obvio, hecho a mano con
+                    html de mierda como dios manda<span class="stamp">
+                      [22:15]</span
+                    >
+                  </div>
+                </div>
+                <form class="chat-input-row" id="chat-form">
+                  <div style="display: flex; gap: 6px">
+                    <input
+                      id="chat-input"
+                      type="text"
+                      placeholder="escribi algo aca..."
+                      autocomplete="off"
+                      style="flex: 1"
+                    />
+                    <button id="send-btn" type="submit">ENVIAR &gt;&gt;</button>
+                  </div>
+                </form>
+              </td>
+            </tr>
+          </table>
+
+          <div class="stat-counter">
+            visitantes: 020394 &nbsp;|&nbsp; ultima act: hoy
+          </div>
+
+          <hr class="sep" />
+
+          <div class="webring">
+            <br />
+            powered by claude, i wanted to test it since i never i did :p
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

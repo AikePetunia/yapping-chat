@@ -1,0 +1,10 @@
+algo {
+  --primary: #ff2a2a;
+  --primary-600: #d61e1e;
+  --primary-400: #ff5a5a;
+  --glow-strong: rgba(255, 42, 42, 0.7);
+  --glow-weak: rgba(255, 42, 42, 0.25);
+  --font-sans: "Outfit", sans-serif;
+  --font-title: "Space Grotesk", sans-serif;
+  --font-mono: "Cascadia Code", monospace;
+}

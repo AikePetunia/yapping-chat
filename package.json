@@ -1,0 +1,21 @@
+{
+  "name": "yapping-chat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --watch ./server/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@libsql/client": "^0.17.4",
+    "dotenv": "^17.4.2",
+    "express": "5.2.1",
+    "morgan": "1.11.0",
+    "socket.io": "4.8.3"
+  }
+}
