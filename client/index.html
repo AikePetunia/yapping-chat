@@ -5,50 +5,44 @@
     <title>~*~ yapping chat ~*~</title>
     <script type="module">
       import { io } from "https://cdn.socket.io/4.6.1/socket.io.esm.min.js";
-      const socket = io();
+    
+      let username;
+      const randomCounter = () => Math.floor(Math.random() * 501);
+      const getUsername = async () => {
+        username = localStorage.getItem("generatedNick")
+        if (!username) {
+          username = "visitor" + randomCounter();
+          localStorage.setItem('generatedNick', username);
+          return user
+        } 
+        return username;
+      }  
+      
+      const socket = io({
+        auth: {
+          username: await getUsername(),
+          serverOffset: 0
+        }
+      });
 
       const form = document.querySelector(".layout");
       const input = document.getElementById("chat-input");
 
-      /*
-                    <td class="chat-body">
-                <div id="messages">
-
-      <div class="line">
-                    <span class="tag">visitor_02:</span> 
-                    obvio, hecho a mano con
-                    html de mierda como dios manda<span class="stamp">
-                      [22:15]</span
-                    >
-                  </div>
-                  */
-
-      // new msg
-      // todo: ver como mantener el numero del usuario
-
       const messages = document.getElementById("messages");
-      const randomCounter = () => Math.floor(Math.random() * 501);
-      const generateNick = "visitor" + randomCounter();
-      // guardad en db
-      /*
-      let saveNick;
-      socket.emit("visitor number", generateNick);
 
-      socket.on("visitor number", (number) => {
-        saveNick = number;
-      });
-                  */
-      socket.on("chat message", (msg) => {
+      socket.on("chat message", (msg, serverOffset, username) => {
         console.log("message received on client");
         const now = new Date();
         const hours = now.getHours();
         const minutes = now.getMinutes();
         const seconds = now.getSeconds();
 
-        console.log(saveNick);
+        messages.scrollTop = messages.scrollHeight;
+        socket.auth.serverOffset = serverOffset
+        socket.auth.username = username;
         const insertText = ` 
         <div class="line">
-            <span class="tag">${saveNick}</span> 
+            <span class="tag">${username}</span> 
             ${msg}
             <span class="stamp">
                 [${hours}:${minutes}:${seconds}]</span
@@ -63,10 +57,8 @@
       form.addEventListener("submit", (event) => {
         event.preventDefault();
         const message = input.value.trim();
-        console.log("message", input.value);
         if (message) {
           socket.emit("chat message", input.value);
-          console.log("input value", input.value);
           input.value = ""; // limpio input
         }
       });
@@ -301,23 +293,7 @@
             <tr>
               <td class="chat-body">
                 <div id="messages">
-                  <div class="line">
-                    <span class="tag">visitor_02:</span>
-                    bienvenido, escribi algo pelotudo o inteligente, lo que sea
-                    <span class="stamp"> [22:14]</span>
-                  </div>
-                  <hr />
-                  <div class="line">
-                    <span class="tag me">vos:</span> esto tiene una onda re
-                    antigua<span class="stamp"> [22:14]</span>
-                  </div>
-                  <hr />
-                  <div class="line">
-                    <span class="tag">visitor_02:</span> obvio, hecho a mano con
-                    html de mierda como dios manda<span class="stamp">
-                      [22:15]</span
-                    >
-                  </div>
+                  
                 </div>
                 <form class="chat-input-row" id="chat-form">
                   <div style="display: flex; gap: 6px">

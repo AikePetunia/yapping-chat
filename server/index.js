@@ -19,35 +19,57 @@ const dbClient = createClient({
   authToken: process.env.TOKEN,
 });
 
-// todo change to uuid
 await dbClient.execute(`CREATE TABLE IF NOT EXISTS messages ( 
     id INTEGER PRIMARY KEY AUTOINCREMENT, 
-    content TEXT )`);
+    content TEXT,
+    username TEXT
+)`);
 
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
   console.log("user connected");
-
-  socket.on("visitor number", (number) => {
-    console.log("received visitor number", number);
-    io.emit("visitor number", number);
-  });
 
   // socket es mensaje de usuario a servidor
   socket.on("chat message", async (msg) => {
     let result;
+    let user = socket.handshake.auth.username || "visitor67";
     try {
       result = await dbClient.execute({
-        sql: "INSERT INTO messages (content) VALUES (:message)",
-        args: { message: msg },
+        sql: "INSERT INTO messages (content, username) VALUES (:message, :username)",
+        args: { message: msg, username: user },
+      });
+    } catch (e) {
+      console.log(e);
+      throw new Error("Have an error ehh check it idk");
+      return;
+    }
+
+    // io es mensaje de otros usuarios a el usuario.
+    console.log("Received message on server: " + msg);
+
+    // incremento id de mensaje
+    io.emit("chat message", msg, result.lastInsertRowid.toString(), user);
+  });
+
+  // have history
+  if (!socket.recovered) {
+    try {
+      const results = await dbClient.execute({
+        sql: "SELECT id, content, username FROM messages WHERE id > ?",
+        args: [socket.handshake.auth.serverOffset ?? 0],
+      });
+
+      results.rows.forEach((row) => {
+        socket.emit(
+          "chat message",
+          row.content,
+          row.id.toString(),
+          row.username,
+        );
       });
     } catch (e) {
       throw new Error("Have an error ehh check it idk");
     }
-
-    // io es mensaje de otros usuarios a el usuario.
-    console.log("Receibed message on server: " + msg);
-    io.emit("chat message", msg);
-  });
+  }
 
   socket.on("disconnect", () => {
     console.log("user disconnected");
