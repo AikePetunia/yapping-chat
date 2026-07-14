@@ -22,14 +22,32 @@ const dbClient = createClient({
 await dbClient.execute(`CREATE TABLE IF NOT EXISTS messages ( 
     id INTEGER PRIMARY KEY AUTOINCREMENT, 
     content TEXT,
-    username TEXT
+    username TEXT,
+    visitCount INTEGER
 )`);
 
+await dbClient.execute(`CREATE TABLE IF NOT EXISTS stats (
+  
+  id INTEGER PRIMARY KEY,
+  key TEXT UNIQUE,
+  value INTEGER
+)`)
+
+await dbClient.execute(`INSERT OR IGNORE INTO stats (key, value) VALUES ('total_visits', 0);`)
 io.on("connection", async (socket) => {
   console.log("user connected");
 
-  // socket es mensaje de usuario a servidor
+ 
+  const lastMessageTime = new Map();
   socket.on("chat message", async (msg) => {
+    const now = Date.now();
+    const lastTime = lastMessageTime.get(socket.id) || 0;
+
+    if (now - lastTime < 1000) return;
+    if (msg.length > 500) return;
+
+    lastMessageTime.set(socket.id, now);
+
     let result;
     let user = socket.handshake.auth.username || "visitor67";
     try {
@@ -38,16 +56,14 @@ io.on("connection", async (socket) => {
         args: { message: msg, username: user },
       });
     } catch (e) {
-      console.log(e);
       throw new Error("Have an error ehh check it idk");
       return;
     }
 
-    // io es mensaje de otros usuarios a el usuario.
-    console.log("Received message on server: " + msg);
-
     // incremento id de mensaje
     io.emit("chat message", msg, result.lastInsertRowid.toString(), user);
+  
+  
   });
 
   // have history
@@ -71,15 +87,29 @@ io.on("connection", async (socket) => {
     }
   }
 
+   // increase visit counter for each connection
+  await dbClient.execute({
+      sql: "UPDATE stats SET value = value + 1 WHERE key = 'total_visits'",
+      args: []
+    });
+  
+  // gives the actual visit counter
+  const resultV = await dbClient.execute({
+    sql: "SELECT value FROM stats WHERE key = 'total_visits'",
+    args: []
+  })
+  io.emit("visit count", resultV.rows[0].value)
+  
+
   socket.on("disconnect", () => {
     console.log("user disconnected");
   });
+  // prettier-ignore
 });
 
 app.use(logger("dev"));
 
 app.get("/", (req, res) => {
-  console.log("yapp");
   res.sendFile(process.cwd() + "/client/index.html");
 });
 

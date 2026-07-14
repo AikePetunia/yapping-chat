@@ -2,75 +2,105 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="the best way to communicate through internet! be happy and free!" />
+    <meta name="keywords" content="chat, websocket, about me, personal website, portfolio, developer, coder, programmer, projects, skills, contact, action, shounen, adventure, super, fantasy, power, comedy, songs, action adventure, super power, hours played, steam, counter strike, cs, fps, csgo" />
+    <meta name="author" content="Aike" />
+    <meta property="og:title" content="Yapping chat !! ⋆*･ﾟ" />
+    <meta property="og:type" content="website" />
+<meta property="og:url" content="https://yapping-chat.onrender.com/" />
+    <meta property="og:description" content="the best way to communicate through internet! be happy and free!" />
+    <meta property="og:image" content="./banner.jpg" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="yapping chat !! ⋆*･ﾟ" />
+  <meta name="twitter:description" content="the best way to communicate through internet! be happy and free!" />
+    <link rel="icon" href="./eye.gif" />
+
     <title>~*~ yapping chat ~*~</title>
     <script type="module">
       import { io } from "https://cdn.socket.io/4.6.1/socket.io.esm.min.js";
-    
+
       let username;
       const randomCounter = () => Math.floor(Math.random() * 501);
       const getUsername = async () => {
-        username = localStorage.getItem("generatedNick")
+        username = localStorage.getItem("generatedNick");
         if (!username) {
           username = "visitor" + randomCounter();
-          localStorage.setItem('generatedNick', username);
-          return user
-        } 
+          localStorage.setItem("generatedNick", username);
+        }
         return username;
-      }  
-      
+      };
+
       const socket = io({
         auth: {
           username: await getUsername(),
-          serverOffset: 0
-        }
+          serverOffset: 0,
+        },
       });
 
-      const form = document.querySelector(".layout");
+      const form = document.getElementById("chat-form");
       const input = document.getElementById("chat-input");
-
       const messages = document.getElementById("messages");
 
-      socket.on("chat message", (msg, serverOffset, username) => {
-        console.log("message received on client");
-        const now = new Date();
-        const hours = now.getHours();
-        const minutes = now.getMinutes();
-        const seconds = now.getSeconds();
-
-        messages.scrollTop = messages.scrollHeight;
-        socket.auth.serverOffset = serverOffset
-        socket.auth.username = username;
-        const insertText = ` 
-        <div class="line">
-            <span class="tag">${username}</span> 
-            ${msg}
-            <span class="stamp">
-                [${hours}:${minutes}:${seconds}]</span
-            >
-        </div>
-        `;
-
-        messages.insertAdjacentHTML("beforeEnd", insertText);
-      });
-
-      const messagesField = document.getElementById("messages");
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
+      const sendMessage = () => {
         const message = input.value.trim();
-        if (message) {
-          socket.emit("chat message", input.value);
-          input.value = ""; // limpio input
+        if (!message) return;
+
+        socket.emit("chat message", message, username);
+        input.value = "";
+      };
+
+      socket.on("chat message", (msg, serverOffset, senderName) => {
+        const div = document.createElement("div");
+        div.className = "line";
+
+        div.innerHTML = `<span class="tag">${senderName}</span> `;
+        const textNode = document.createTextNode(msg);
+        div.appendChild(textNode);
+        div.innerHTML += `<span class="stamp">[${new Date().toLocaleTimeString()}]</span>`;
+
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+
+        const loading = document.getElementById("loading");
+        if (loading) {
+          loading.remove();
         }
       });
 
-      document
-        .getElementById("chat-input")
-        .addEventListener("keydown", function (e) {
-          if (e.key === "Enter") sendMessage();
-        });
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        sendMessage();
+      });
 
-        // todo: let messageCounter = document.querySelector('stat-counter');
-       
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault();
+          sendMessage();
+        }
+      });
+
+      socket.on("visit count", (value) => {
+        const visitCounter = document.querySelector(".visit-counter");
+        visitCounter.textContent = value;
+      });
+
+      function showRandomVideo() {
+        const videoElement = document.getElementById("bg-video");
+        const videosList = [
+          "https://public-assets.delysium.com/videos/block-chain.webm",
+          "https://public-assets.delysium.com/videos/ai-agent.webm",
+          "https://public-assets.delysium.com/videos/communication.webm",
+        ];
+
+        const selectedVideo = videosList[Math.floor(Math.random() * videosList.length)];
+        videoElement.src = selectedVideo;
+        videoElement.load();
+        videoElement.play().catch((e) => console.log("Autoplay blocked:", e));
+      }
+
+      showRandomVideo();
     </script>
     <style>
       * {
@@ -78,17 +108,17 @@
       }
 
       html,
-      body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        background-color: #000000;
-        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><text x='2' y='14' font-family='monospace' font-size='12' fill='%23ff2a2a'>01</text><text x='40' y='30' font-family='monospace' font-size='12' fill='%238a0000'>x</text><text x='80' y='10' font-family='monospace' font-size='12' fill='%23ff2a2a'>.</text><text x='10' y='60' font-family='monospace' font-size='12' fill='%23550000'>1</text><text x='60' y='70' font-family='monospace' font-size='12' fill='%23ff2a2a'>0</text><text x='95' y='55' font-family='monospace' font-size='12' fill='%238a0000'>.</text><text x='20' y='100' font-family='monospace' font-size='12' fill='%23ff2a2a'>:</text><text x='70' y='110' font-family='monospace' font-size='12' fill='%23550000'>x</text></svg>");
-        background-repeat: repeat;
-        animation: bgshift 0.4s steps(2) infinite;
-        font-family: "Courier New", Courier, monospace;
-        color: #ff2a2a;
-      }
+  body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: #000000;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><text x='2' y='14' font-family='monospace' font-size='12' fill='%23ff2a2a'>01</text><text x='40' y='30' font-family='monospace' font-size='12' fill='%238a0000'>x</text><text x='80' y='10' font-family='monospace' font-size='12' fill='%23ff2a2a'>.</text><text x='10' y='60' font-family='monospace' font-size='12' fill='%23550000'>1</text><text x='60' y='70' font-family='monospace' font-size='12' fill='%23ff2a2a'>0</text><text x='95' y='55' font-family='monospace' font-size='12' fill='%238a0000'>.</text><text x='20' y='100' font-family='monospace' font-size='12' fill='%23ff2a2a'>:</text><text x='70' y='110' font-family='monospace' font-size='12' fill='%23550000'>x</text></svg>");
+    background-repeat: repeat;
+    animation: bgshift 0.4s steps(2) infinite;
+    font-family: "Courier New", Courier, monospace;
+    color: #ff2a2a;
+  }
 
       @keyframes bgshift {
         0% {
@@ -99,16 +129,39 @@
         }
       }
 
-      table.layout {
-        width: 100%;
-        height: 100%;
-        border-collapse: collapse;
-      }
-      table.layout td.center-cell {
-        text-align: center;
-        vertical-align: middle;
-        padding: 10px;
-      }
+  .bg-video-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    background-color: #000000;
+  }
+ 
+  .bg-video-layer video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.5;
+    filter: grayscale(0.5) sepia(1.4) saturate(39) hue-rotate(-24deg) brightness(0.6) contrast(2);
+  }
+ 
+
+        table.layout {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    border-collapse: collapse;
+  }
+  table.layout td.center-cell {
+    text-align: center;
+    vertical-align: middle;
+    padding: 10px;
+  }
+
 
       marquee.top-marquee {
         background: #000000;
@@ -160,6 +213,36 @@
         border: 4px ridge #8a0000;
         border-collapse: collapse;
       }
+
+      .hidden {
+        opacity: 0;
+        display: none;
+      }
+
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: #ff2a2a;
+      }
+
+      ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+
+      ::-webkit-scrollbar-track {
+    background: #eee;
+    border-radius: 5px;
+  }
+
+    ::-webkit-scrollbar-thumb {
+      background: #ff2a2a;
+      border-radius: 5px;
+      border: 2px solid #eee;          
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #ff2a2a;
+    }
 
       td.chat-titlebar {
         background-color: #550000;
@@ -271,12 +354,15 @@
     </style>
   </head>
   <body>
-    <table class="layout">
+  <div class="bg-video-layer">
+<video id="bg-video" autoplay loop muted playsinline preload="auto"></video>
+  </div>
+  <table class="layout">
       <tr>
         <td colspan="1" style="padding: 0">
           <marquee class="top-marquee" scrollamount="5">
             *** welcome to yapping chat *** come yapp *** argentina ⭐⭐⭐ ***
-            best viewed in any resolution ***
+            open source ***
           </marquee>
         </td>
       </tr>
@@ -296,6 +382,8 @@
             <tr>
               <td class="chat-body">
                 <div id="messages">
+                  <!-- messages goes here-->
+                  <h2 id="loading" style="text-align: center;"> Loading... uwu</h2>
                   
                 </div>
                 <form class="chat-input-row" id="chat-form">
@@ -303,7 +391,7 @@
                     <input
                       id="chat-input"
                       type="text"
-                      placeholder="escribi algo aca..."
+                      placeholder="write here..."
                       autocomplete="off"
                       style="flex: 1"
                     />
@@ -314,16 +402,24 @@
             </tr>
           </table>
 
-          <div class="stat-counter">
-            visits: - &nbsp;|&nbsp;
-          </div>
+<div class="stat-counter">
+  <span>visits:</span> <span class="visit-counter">0</span> 
+</div>
 
           <hr class="sep" />
 
           <div class="webring">
+
             <br />
-            powered by claude, i wanted to test it since i never i did :p
+            <a href="https://github.com/AikePetunia/yapping-chat" style="color: red">source code</a>
+                        <br />
+            <h6>
+              UI powered by claude, i wanted to test it since i never i did :p
+              <br />
+              the background it's more stolen than the falklands btw
+            </h6>
           </div>
+
         </td>
       </tr>
     </table>
